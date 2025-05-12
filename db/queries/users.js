@@ -20,7 +20,7 @@ export async function getUserByUsernameAndPassword(username, password) {
   const sql = `
   SELECT *
   FROM users
-  WHERE email = $1
+  WHERE username = $1
   `;
   const {
     rows: [user],
@@ -30,5 +30,17 @@ export async function getUserByUsernameAndPassword(username, password) {
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) return null;
 
+  return user;
+}
+
+export async function getUserById(id) {
+  const sql = `
+  SELECT *
+  FROM users
+  WHERE id = $1
+  `;
+  const {
+    rows: [user],
+  } = await db.query(sql, [id]);
   return user;
 }

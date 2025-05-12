@@ -2,15 +2,32 @@ import express from "express";
 const router = express.Router();
 export default router;
 
-import { getTracks, getTrackById } from "#db/queries/tracks";
+import {
+  getTracks,
+  getTrackById,
+  getPlaylistsbyTrack,
+} from "#db/queries/tracks";
+import requireUser from "#middleware/requireUser";
 
 router.route("/").get(async (req, res) => {
   const tracks = await getTracks();
   res.send(tracks);
 });
 
-router.route("/:id").get(async (req, res) => {
-  const track = await getTrackById(req.params.id);
+router.param("trackID", async (req, res, next, trackID) => {
+  const track = await getTrackById(trackID);
   if (!track) return res.status(404).send("Track not found.");
-  res.send(track);
+  req.track = track;
+  next();
+});
+
+router.route("/:trackID").get((req, res) => {
+  res.send(req.track);
+});
+
+router.use(requireUser);
+
+router.route("/:trackID/playlists").get(async (req, res) => {
+  const playlists = await getPlaylistsbyTrack(req.track.id, req.user.id);
+  res.send(playlists);
 });
